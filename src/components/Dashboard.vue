@@ -1,10 +1,25 @@
 <template>
   <div id="dashboard">
-    <ul class="collection with-header">
-      <li class="collection-header"><h4>Employees</h4></li>
-      <li v-for="employee in employees" v-bind:key="employee.id" class="collection-item">
-        {{ employee.employee_id }} : {{ employee.name }} <div class="chip">{{ employee.dept }}</div>
+    <h3>All Tasks</h3>
+    <ul>
+
+      <li v-for="task in tasks" v-bind:key="task.id" class="collection-item">
+        <form action="#">
+          <input type="checkbox" class="filled-in" v-bind:id="task.id" v-model="task.completed" />
+          <label v-bind:for="task.id">{{ task.description }}</label>
+        </form>
       </li>
+    </ul>
+
+
+    <h4>Incomplete Tasks</h4>
+    <ul>
+      <li v-for="task in incompleteTasks" v-text="task.description"></li>
+    </ul>
+
+    <h4>Complete Tasks</h4>
+    <ul>
+      <li v-bind:class="{ complete: task.completed }" v-for="task in completeTasks" v-text="task.description"></li>
     </ul>
 
   <div class="fixed-action-btn">
@@ -22,24 +37,35 @@ import db from './firebaseInit'
 export default {
   name: 'dashboard',
   data () {
-    return {
-      employees: []
-    }
-  },
+      return {
+        tasks: []
+      }
+    },
   created () {
-    db.collection('employees').orderBy('employee_id').get().then(querySnapshot => {
-      querySnapshot.forEach(doc => {
-        // console.log(doc.data())
-        const data = {
-          'id': doc.id,
-          'employee_id': doc.data().employee_id,
-          'name': doc.data().name,
-          'dept': doc.data().dept,
-          'position': doc.data().position
-        }
-        this.employees.push(data)
+      db.collection('tasks').orderBy('description').get().then(querySnapshot => {
+        querySnapshot.forEach(doc => {
+          // console.log(doc.data())
+          const data = {
+            'id': doc.id,
+            'description': doc.data().description,
+            'completed': doc.data().completed
+          }
+          this.tasks.push(data)
+        })
       })
-    })
+  },
+
+  methods: {
+
+  },
+
+  computed: {
+    incompleteTasks() {
+      return this.tasks.filter(task => ! task.completed);
+    },
+    completeTasks() {
+      return this.tasks.filter(task => task.completed);
+    }
   }
 }
 </script>
